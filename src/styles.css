@@ -1,0 +1,187 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Kayan Maison Design System
+ * Palette:
+ * - Base Background: #241512 (deep espresso brown)
+ * - Surface / Cards: #3A281E (roasted-bean brown)
+ * - Primary Accent: #C08A45 (burnished caramel-gold)
+ * - Secondary Accent: #8C5A32 (muted copper-brown)
+ * - Primary Text: #F3E7D6 (warm cream)
+ * - Secondary / Muted Text: #C9B79C (soft warm taupe)
+ * - Special Accent: #6B3226 (coffee-cherry red)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-display: "Playfair Display", "Fraunces", "Alexandria", ui-serif, Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-arabic: "Alexandria", "Cairo", system-ui, sans-serif;
+
+  --color-background: #241512;
+  --color-foreground: #F3E7D6;
+  --color-card: #3A281E;
+  --color-card-foreground: #F3E7D6;
+  --color-popover: #3A281E;
+  --color-popover-foreground: #F3E7D6;
+  --color-primary: #C08A45;
+  --color-primary-foreground: #241512;
+  --color-secondary: #3A281E;
+  --color-secondary-foreground: #F3E7D6;
+  --color-muted: #2E1B15;
+  --color-muted-foreground: #C9B79C;
+  --color-accent: #C08A45;
+  --color-accent-foreground: #241512;
+  --color-copper: #C08A45;
+  --color-copper-foreground: #241512;
+  --color-border: #8C5A32;
+  --color-input: #8C5A32;
+  --color-ring: #C08A45;
+  --color-cherry: #6B3226;
+
+  --shadow-soft: 0 4px 20px -2px rgba(18, 9, 7, 0.4);
+  --shadow-lift: 0 20px 45px -10px rgba(15, 7, 5, 0.65);
+  --shadow-glow: 0 0 40px -10px rgba(192, 138, 69, 0.25);
+}
+
+:root {
+  --radius: 1rem;
+  --background: #241512;
+  --foreground: #F3E7D6;
+  --card: #3A281E;
+  --card-foreground: #F3E7D6;
+  --popover: #3A281E;
+  --popover-foreground: #F3E7D6;
+  --primary: #C08A45;
+  --primary-foreground: #241512;
+  --secondary: #3A281E;
+  --secondary-foreground: #F3E7D6;
+  --muted: #2E1B15;
+  --muted-foreground: #C9B79C;
+  --accent: #C08A45;
+  --accent-foreground: #241512;
+  --copper: #C08A45;
+  --border: rgba(140, 90, 50, 0.4);
+  --input: rgba(140, 90, 50, 0.5);
+  --ring: #C08A45;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: #241512;
+    color: #F3E7D6;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Texture overlay for grounded depth without blurry gradient blobs */
+.bg-coffee-texture {
+  background-color: #241512;
+  background-image: radial-gradient(circle at 50% 30%, rgba(58, 40, 30, 0.45) 0%, rgba(36, 21, 18, 0.95) 75%);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes soft-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Subtle, natural floating animations for realism */
+@keyframes float-cup-primary {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(2deg) scale(1);
+  }
+  50% {
+    transform: translate3d(-6px, -12px, 0) rotate(-1deg) scale(1.02);
+  }
+}
+
+@keyframes float-cup-secondary {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(-3deg) scale(0.9);
+  }
+  50% {
+    transform: translate3d(8px, -10px, 0) rotate(1deg) scale(0.92);
+  }
+}
+
+@utility reveal {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+  &[data-revealed="true"] {
+    animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+}
+
+@utility page-enter {
+  animation: soft-fade 0.4s ease-out both;
+}
+
+@utility card-lift {
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease;
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lift);
+    border-color: rgba(192, 138, 69, 0.6);
+  }
+}
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #C08A45;
+}
+
+.animate-cup-front {
+  animation: float-cup-primary 6s ease-in-out infinite alternate;
+}
+
+.animate-cup-back {
+  animation: float-cup-secondary 7s ease-in-out infinite alternate;
+}
