@@ -5,15 +5,12 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Kayan Maison Design System
- * Palette:
- * - Base Background: #241512 (deep espresso brown)
- * - Surface / Cards: #3A281E (roasted-bean brown)
- * - Primary Accent: #C08A45 (burnished caramel-gold)
- * - Secondary Accent: #8C5A32 (muted copper-brown)
- * - Primary Text: #F3E7D6 (warm cream)
- * - Secondary / Muted Text: #C9B79C (soft warm taupe)
- * - Special Accent: #6B3226 (coffee-cherry red)
+ * Nova Café / Kayan Dark Luxury Artisan Aesthetic
+ * - Background: #0B0705 (deep dark espresso wood)
+ * - Card / Surface: #170F0A
+ * - Luxury Gold: #DFBA73 / #C5A059
+ * - Cream Text: #F5EFE6
+ * - Muted Gold Text: #BFB096
  */
 
 @theme inline {
@@ -25,56 +22,51 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  --font-display: "DM Serif Display", "Fraunces", "Alexandria", ui-serif, Georgia, serif;
-  --font-sans: "Outfit", "Plus Jakarta Sans", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", "Playfair Display", "Cinzel", "Alexandria", serif;
+  --font-serif: "Cormorant Garamond", "Playfair Display", serif;
+  --font-sans: "Plus Jakarta Sans", "Cairo", system-ui, sans-serif;
   --font-arabic: "Alexandria", "Cairo", system-ui, sans-serif;
 
-  --color-background: #241512;
-  --color-foreground: #F3E7D6;
-  --color-card: #3A281E;
-  --color-card-foreground: #F3E7D6;
-  --color-popover: #3A281E;
-  --color-popover-foreground: #F3E7D6;
-  --color-primary: #C08A45;
-  --color-primary-foreground: #241512;
-  --color-secondary: #3A281E;
-  --color-secondary-foreground: #F3E7D6;
-  --color-muted: #2E1B15;
-  --color-muted-foreground: #C9B79C;
-  --color-accent: #C08A45;
-  --color-accent-foreground: #241512;
-  --color-copper: #C08A45;
-  --color-copper-foreground: #241512;
-  --color-border: #8C5A32;
-  --color-input: #8C5A32;
-  --color-ring: #C08A45;
-  --color-cherry: #6B3226;
+  --color-background: #0B0705;
+  --color-foreground: #F5EFE6;
+  --color-card: #170F0A;
+  --color-card-foreground: #F5EFE6;
+  --color-primary: #DFBA73;
+  --color-primary-foreground: #0B0705;
+  --color-secondary: #170F0A;
+  --color-secondary-foreground: #F5EFE6;
+  --color-muted: #1F140E;
+  --color-muted-foreground: #BFB096;
+  --color-accent: #DFBA73;
+  --color-accent-foreground: #0B0705;
+  --color-border: rgba(223, 186, 115, 0.25);
+  --color-input: rgba(223, 186, 115, 0.3);
+  --color-ring: #DFBA73;
 
-  --shadow-soft: 0 4px 20px -2px rgba(18, 9, 7, 0.4);
-  --shadow-lift: 0 20px 45px -10px rgba(15, 7, 5, 0.65);
-  --shadow-glow: 0 0 40px -10px rgba(192, 138, 69, 0.25);
+  --shadow-soft: 0 4px 25px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 20px 45px -10px rgba(0, 0, 0, 0.85);
+  --shadow-glow: 0 0 40px -5px rgba(223, 186, 115, 0.2);
 }
 
 :root {
-  --radius: 1rem;
-  --background: #241512;
-  --foreground: #F3E7D6;
-  --card: #3A281E;
-  --card-foreground: #F3E7D6;
-  --popover: #3A281E;
-  --popover-foreground: #F3E7D6;
-  --primary: #C08A45;
-  --primary-foreground: #241512;
-  --secondary: #3A281E;
-  --secondary-foreground: #F3E7D6;
-  --muted: #2E1B15;
-  --muted-foreground: #C9B79C;
-  --accent: #C08A45;
-  --accent-foreground: #241512;
-  --copper: #C08A45;
-  --border: rgba(140, 90, 50, 0.4);
-  --input: rgba(140, 90, 50, 0.5);
-  --ring: #C08A45;
+  --radius: 1.25rem;
+  --background: #0B0705;
+  --foreground: #F5EFE6;
+  --card: #170F0A;
+  --card-foreground: #F5EFE6;
+  --popover: #170F0A;
+  --popover-foreground: #F5EFE6;
+  --primary: #DFBA73;
+  --primary-foreground: #0B0705;
+  --secondary: #170F0A;
+  --secondary-foreground: #F5EFE6;
+  --muted: #1F140E;
+  --muted-foreground: #BFB096;
+  --accent: #DFBA73;
+  --accent-foreground: #0B0705;
+  --border: rgba(223, 186, 115, 0.25);
+  --input: rgba(223, 186, 115, 0.3);
+  --ring: #DFBA73;
 }
 
 @layer base {
@@ -83,8 +75,8 @@
   }
 
   body {
-    background-color: #241512;
-    color: #F3E7D6;
+    background-color: #0B0705;
+    color: #F5EFE6;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
@@ -95,63 +87,22 @@
   h4,
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
   }
 }
 
-/* Subtle steam rising animation - exactly one gentle motion */
-@keyframes steam-rise-1 {
-  0% {
-    transform: translateY(0) scaleX(0.8);
-    opacity: 0;
-  }
-  25% {
-    opacity: 0.45;
-  }
-  60% {
-    transform: translateY(-28px) scaleX(1.4) translateX(4px);
-    opacity: 0.3;
-  }
-  100% {
-    transform: translateY(-56px) scaleX(2) translateX(-6px);
-    opacity: 0;
-  }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-@keyframes steam-rise-2 {
-  0% {
-    transform: translateY(0) scaleX(0.7);
-    opacity: 0;
-  }
-  30% {
-    opacity: 0.4;
-  }
-  70% {
-    transform: translateY(-34px) scaleX(1.6) translateX(-5px);
-    opacity: 0.25;
-  }
-  100% {
-    transform: translateY(-64px) scaleX(2.2) translateX(8px);
-    opacity: 0;
-  }
-}
-
-.animate-steam-1 {
-  animation: steam-rise-1 4.5s ease-out infinite;
-}
-
-.animate-steam-2 {
-  animation: steam-rise-2 5.5s ease-out infinite 1.5s;
-}
-
-.animate-steam-3 {
-  animation: steam-rise-1 6s ease-out infinite 3s;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 24px, 0);
+    transform: translate3d(0, 20px, 0);
   }
   to {
     opacity: 1;
@@ -170,7 +121,7 @@
 
 @utility reveal {
   opacity: 0;
-  transform: translate3d(0, 24px, 0);
+  transform: translate3d(0, 20px, 0);
   &[data-revealed="true"] {
     animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     animation-delay: var(--reveal-delay, 0ms);
@@ -183,21 +134,20 @@
 
 @utility card-lift {
   transition:
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s ease;
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease;
   &:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-lift);
-    border-color: rgba(192, 138, 69, 0.6);
+    border-color: rgba(223, 186, 115, 0.5);
   }
 }
 
 @utility eyebrow {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #C08A45;
+  color: #DFBA73;
 }

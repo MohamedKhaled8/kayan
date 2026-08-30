@@ -10,43 +10,43 @@ export interface CategoryItem {
 
 export const defaultCategories: CategoryItem[] = [
   {
-    id: "main-dishes",
-    name: "وجبات وأطباق رئيسية",
-    description: "أشهى الأطباق والبرجر والباستا المحضرة طازجة بأجود المكونات",
-    icon: "Utensils",
+    id: "hot-coffee",
+    name: "قهوة مختصة ومشروبات ساخنة",
+    description: "إسبريسو، فلات وايت، كورتادو، كيمكس، ومشروبات ساخنة مميزة",
+    icon: "Coffee",
     createdAt: new Date("2026-01-01").toISOString(),
   },
   {
-    id: "hot-drinks",
-    name: "قهوة مختصة ومشروبات ساخنة",
-    description: "محاصيل فاخرة، فلات وايت، كيمكس، وإسبريسو ومشروبات دافئة",
-    icon: "Coffee",
+    id: "iced-drinks",
+    name: "مشروبات باردة ومثلجة",
+    description: "سبانش لاتيه مثلج، كولد برو، آيس تي، ومشروبات صيفية منعشة",
+    icon: "IceCream",
     createdAt: new Date("2026-01-02").toISOString(),
   },
   {
-    id: "cold-drinks",
-    name: "مشروبات باردة ومثلجة",
-    description: "سبانش لاتيه مثلج، كولد برو، عصائر وموخيتو منعش",
-    icon: "GlassWater",
+    id: "fresh-pastries",
+    name: "حلويات ومخبوزات طازجة",
+    description: "كيك، تشيز كيك، كرواسون فرنسي، دوناتس، وحلويات فاخرة يومياً",
+    icon: "Cookie",
     createdAt: new Date("2026-01-03").toISOString(),
   },
   {
-    id: "pastries",
-    name: "حلويات ومخبوزات طازجة",
-    description: "كرواسون فرنسي، كيك، ومخبوزات وحلويات فاخرة يومياً",
-    icon: "Cake",
+    id: "frappe-juices",
+    name: "عصائر طبيعية وفرابيه",
+    description: "فرابيه كراميل وشوكولاتة، سموذي فواكه طبيعية، وعصائر طازجة",
+    icon: "Flame",
     createdAt: new Date("2026-01-04").toISOString(),
   },
   {
-    id: "specials",
-    name: "عروض وسبيشال كَيان",
-    description: "ابتكارات وتجارب خاصة حصرية لرواد كَيان",
+    id: "kayan-specials",
+    name: "سبيشال كَيان",
+    description: "مشروبات وابتكارات حصرية خاصة بكَيان كافيه",
     icon: "Sparkles",
     createdAt: new Date("2026-01-05").toISOString(),
   },
 ];
 
-const STORAGE_KEY = "kayan.categories.v3";
+const STORAGE_KEY = "kayan.categories.v4";
 const CHANNEL_NAME = "kayan_categories_realtime";
 
 function readCategories(): CategoryItem[] {
@@ -80,7 +80,7 @@ function writeCategories(categories: CategoryItem[]) {
       channel.close();
     }
   } catch (e) {
-    // BroadcastChannel fallback silently handled
+    // BroadcastChannel fallback
   }
 }
 
@@ -105,7 +105,7 @@ export function useCategories() {
         };
       }
     } catch (e) {
-      // BroadcastChannel ignore if not available
+      // ignore
     }
 
     return () => {
@@ -131,7 +131,6 @@ export function useCategories() {
           .replace(/[^\w\u0621-\u064A0-9]+/g, "-")
           .replace(/^-|-$/g, "") || `category-${Date.now()}`;
 
-      // Avoid duplicate IDs
       const uniqueId = current.some((c) => c.id === id) ? `${id}-${Date.now().toString().slice(-4)}` : id;
 
       const newCategory: CategoryItem = {
