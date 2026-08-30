@@ -1,29 +1,41 @@
-# Welcome to your Lovable project
+# KAYAN CAFÉ — كَيان كافيه ☕
 
-This project was built with [Lovable](https://lovable.dev).
+> تجربة قهوة ومخبوزات فاخرة مع نظام إدارة ومنيو إلكتروني متكامل.
 
-## Build with Lovable
+---
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+## 🌟 مميزات المشروع
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **المنيو الإلكتروني التفاعلي**: تصفح الأصناف، الأقسام، طلب الطاولات، والتأكيد التفاعلي.
+- **نظام إدارة الطلبات الحية (Admin Orders)**: استلام طلبات الطاولات لحظياً مع إدارة الحالات (قيد الانتظار، جاري التحضير، تم التسليم) وحساب الفواتير.
+- **لوحة التقارير والإحصائيات**: متابعة المبيعات اليومية، تحديد الأصناف الأكثر مبيعاً وطلباً، مع فلترة حسب التواريخ.
+- **إدارة المنيو والأقسام**: إضافة، تعديل وحذف الأصناف ورفع الصور بسهولة.
+- **تصميم عصري متجاوب**: متوافق تماماً مع جميع أحجام الشاشات والموبايل.
 
-## Development
+---
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## 📍 بيانات المكان
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+- **العنوان**: المنوفية، مدينة السادات، سوق المنطقة السابعة التجاري، أول شارع كلية تربية عام.
+- **رقم الهاتف**: `01023106321`
+
+---
+
+## 🚀 التشغيل محلياً
+
+```bash
+# تثبيت الحزم
+npm install
+
+# تشغيل خادم التطوير
 npm run dev
 ```
 
-## Built with
+---
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+## 🛠️ التقنيات المستخدمة
+
+- **Framework**: React + TanStack Router
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Charts**: Recharts
