@@ -32,7 +32,7 @@ export const Route = createFileRoute("/")({
 
 // Atmospheric hero background
 export const novaHeroBackground =
-  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=2000&q=90";
+  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1400&q=80";
 
 function HomePage() {
   const { products } = useProducts();

@@ -15,7 +15,16 @@ export function Reveal({ children, delay = 0, className, as }: RevealProps) {
 
   useEffect(() => {
     const node = ref.current;
-    if (!node) return;
+    if (!node) {
+      setShown(true);
+      return;
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShown(true);
+      return;
+    }
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -25,10 +34,19 @@ export function Reveal({ children, delay = 0, className, as }: RevealProps) {
           }
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0.01, rootMargin: "100px 0px 100px 0px" },
     );
     io.observe(node);
-    return () => io.disconnect();
+
+    // Guaranteed fallback: Reveal after brief timeout so content is NEVER hidden on mobile
+    const timer = setTimeout(() => {
+      setShown(true);
+    }, 350);
+
+    return () => {
+      io.disconnect();
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
