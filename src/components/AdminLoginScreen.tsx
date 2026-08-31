@@ -24,7 +24,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
     email: "",
     password: "",
     showPassword: false,
-    rememberMe: true,
+    rememberMe: false, // Default is strictly unchecked
     loading: false,
     error: null,
   });
@@ -37,7 +37,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
     set({ error: null, loading: true });
 
     try {
-      const res = await signIn(form.email, form.password);
+      const res = await signIn(form.email, form.password, form.rememberMe);
       if (res.success) {
         if (onSuccess) {
           onSuccess();
@@ -125,25 +125,44 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
           <form
             onSubmit={handleSubmit}
             className="w-full mt-7 space-y-4"
-            autoComplete={form.rememberMe ? "on" : "off"}
+            autoComplete="off"
             noValidate
           >
+            {/* Hidden dummy inputs to capture aggressive browser autofill */}
+            <input
+              type="text"
+              name="prevent_autofill_user"
+              tabIndex={-1}
+              style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: "none" }}
+              autoComplete="off"
+            />
+            <input
+              type="password"
+              name="prevent_autofill_pass"
+              tabIndex={-1}
+              style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: "none" }}
+              autoComplete="new-password"
+            />
+
             {/* Email Field */}
             <div className="space-y-1.5 text-left">
               <label
-                htmlFor="login-email"
+                htmlFor="kayan-admin-email"
                 className="block text-xs font-semibold text-[#3D2E24] tracking-wide"
               >
                 Email Address
               </label>
               <input
-                id="login-email"
+                id="kayan-admin-email"
+                name="kayan_admin_identity"
                 type="email"
                 value={form.email}
                 onChange={(e) => set({ email: e.target.value })}
                 placeholder="name@example.com"
                 required
-                autoComplete={form.rememberMe ? "username email" : "off"}
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
                 className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 text-sm text-[#1C140E] placeholder-[#B5A89B] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7] text-left"
               />
             </div>
@@ -151,20 +170,23 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
             {/* Password Field */}
             <div className="space-y-1.5 text-left">
               <label
-                htmlFor="login-password"
+                htmlFor="kayan-admin-password"
                 className="block text-xs font-semibold text-[#3D2E24] tracking-wide"
               >
                 Password
               </label>
               <div className="relative">
                 <input
-                  id="login-password"
+                  id="kayan-admin-password"
+                  name="kayan_admin_secret"
                   type={form.showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => set({ password: e.target.value })}
                   placeholder="Enter your password"
                   required
-                  autoComplete={form.rememberMe ? "current-password" : "new-password"}
+                  autoComplete="new-password"
+                  data-lpignore="true"
+                  data-form-type="other"
                   className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 pr-11 text-sm text-[#1C140E] placeholder-[#B5A89B] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7] text-left"
                 />
                 <button
@@ -186,6 +208,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
             <div className="flex items-center gap-2 pt-0.5 justify-start text-left">
               <input
                 id="login-remember"
+                name="remember_admin_choice"
                 type="checkbox"
                 checked={form.rememberMe}
                 onChange={(e) => set({ rememberMe: e.target.checked })}

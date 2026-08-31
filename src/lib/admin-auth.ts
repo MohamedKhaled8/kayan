@@ -14,7 +14,6 @@ const VALID_ADMIN_EMAILS = [
 ];
 
 // Valid Password SHA-256 Hashes or Direct valid passwords
-// Matches: "K&A_admS.d", "kayan@admin2026", "kayan2026", "admin2026", "admin"
 const VALID_PASSWORDS = new Set([
   "K&A_admS.d",
   "k&a_adms.d",
@@ -41,7 +40,11 @@ export async function sha256(message: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function signIn(email: string, password: string): Promise<{ success: boolean; error: string | null }> {
+export async function signIn(
+  email: string,
+  password: string,
+  rememberMe: boolean = false,
+): Promise<{ success: boolean; error: string | null }> {
   const normalizedEmail = email.trim().toLowerCase();
   const trimmedPassword = password.trim();
 
@@ -73,12 +76,19 @@ export async function signIn(email: string, password: string): Promise<{ success
     email: normalizedEmail.includes("@") ? normalizedEmail : "admin@kayan.cafe",
     token,
     role: "superadmin",
-    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days session
+    rememberMe,
+    expiresAt: rememberMe
+      ? Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
+      : Date.now() + 24 * 60 * 60 * 1000, // 1 day
   };
 
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    if (rememberMe) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
     window.dispatchEvent(new Event(AUTH_EVENT));
   } catch (e) {
     console.error("Storage error", e);
