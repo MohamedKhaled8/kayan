@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { signIn } from "@/lib/admin-auth";
+import {
+  clearRememberedCredentials,
+  getRememberedCredentials,
+  signIn,
+} from "@/lib/admin-auth";
 import logoSymbol from "@/assets/logo-symbol.png";
 
 // Real barista pouring latte art photo (moody, warm, high-resolution)
@@ -20,17 +24,57 @@ interface LoginFormState {
 export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState<LoginFormState>({
-    email: "",
-    password: "",
-    showPassword: false,
-    rememberMe: false, // Default is strictly unchecked
-    loading: false,
-    error: null,
+  const [form, setForm] = useState<LoginFormState>(() => {
+    const remembered = getRememberedCredentials();
+    if (remembered && remembered.rememberMe) {
+      return {
+        email: remembered.email || "",
+        password: remembered.password || "",
+        showPassword: false,
+        rememberMe: true,
+        loading: false,
+        error: null,
+      };
+    }
+    return {
+      email: "",
+      password: "",
+      showPassword: false,
+      rememberMe: false,
+      loading: false,
+      error: null,
+    };
   });
+
+  // Sync remembered credentials on mount as well
+  useEffect(() => {
+    const remembered = getRememberedCredentials();
+    if (remembered && remembered.rememberMe) {
+      setForm((prev) => ({
+        ...prev,
+        email: remembered.email || "",
+        password: remembered.password || "",
+        rememberMe: true,
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        email: "",
+        password: "",
+        rememberMe: false,
+      }));
+    }
+  }, []);
 
   const set = (partial: Partial<LoginFormState>) =>
     setForm((prev) => ({ ...prev, ...partial }));
+
+  const handleRememberToggle = (checked: boolean) => {
+    set({ rememberMe: checked });
+    if (!checked) {
+      clearRememberedCredentials();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,7 +255,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
                 name="remember_admin_choice"
                 type="checkbox"
                 checked={form.rememberMe}
-                onChange={(e) => set({ rememberMe: e.target.checked })}
+                onChange={(e) => handleRememberToggle(e.target.checked)}
                 className="h-4 w-4 rounded border-[#D9D1C7] accent-[#1B4332] text-[#1B4332] cursor-pointer"
               />
               <label

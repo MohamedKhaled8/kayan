@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "kayan.admin.auth_session";
+const REMEMBERED_CREDENTIALS_KEY = "kayan.admin.remembered_credentials";
 const AUTH_EVENT = "kayan:admin-auth-event";
 
 // Valid Admin Emails
@@ -40,6 +41,45 @@ export async function sha256(message: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+export interface RememberedCredentials {
+  email: string;
+  password?: string;
+  rememberMe: boolean;
+}
+
+export function getRememberedCredentials(): RememberedCredentials | null {
+  try {
+    const raw = localStorage.getItem(REMEMBERED_CREDENTIALS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function saveRememberedCredentials(email: string, password: string): void {
+  try {
+    localStorage.setItem(
+      REMEMBERED_CREDENTIALS_KEY,
+      JSON.stringify({
+        email: email.trim(),
+        password: password.trim(),
+        rememberMe: true,
+      })
+    );
+  } catch (e) {
+    console.error("Save credentials error", e);
+  }
+}
+
+export function clearRememberedCredentials(): void {
+  try {
+    localStorage.removeItem(REMEMBERED_CREDENTIALS_KEY);
+  } catch (e) {
+    console.error("Clear credentials error", e);
+  }
+}
+
 export async function signIn(
   email: string,
   password: string,
@@ -65,6 +105,13 @@ export async function signIn(
 
   if (!isDirectMatch && !isHashMatch) {
     return { success: false, error: "كلمة المرور غير صحيحة." };
+  }
+
+  // Handle explicit rememberMe credentials persistence
+  if (rememberMe) {
+    saveRememberedCredentials(normalizedEmail, trimmedPassword);
+  } else {
+    clearRememberedCredentials();
   }
 
   // Generate secure session
