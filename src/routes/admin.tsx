@@ -53,11 +53,12 @@ function AdminLayout() {
       {/* Sidebar - Clean Slate/Dark SaaS Theme */}
       <aside
         className={cn(
-          "flex-col justify-between bg-slate-900 px-5 py-6 text-slate-300 md:flex md:w-64 md:shrink-0 text-right shadow-md",
+          "flex-col bg-slate-900 text-slate-300 shadow-md md:flex md:w-64 md:shrink-0 md:sticky md:top-0 md:h-screen text-right",
           open ? "flex" : "hidden",
         )}
       >
-        <div>
+        {/* Top: Logo — fixed */}
+        <div className="px-5 pt-6 pb-4 shrink-0">
           <Link to="/" className="hidden items-center justify-end gap-3 md:flex group">
             <div className="text-right">
               <span className="block font-bold text-base text-white">كَيان كافيه</span>
@@ -67,37 +68,39 @@ function AdminLayout() {
               <Coffee className="size-4" />
             </span>
           </Link>
-
-          <nav className="mt-8 space-y-1.5">
-            {NAV_ITEMS.map((item) => {
-              const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
-              const isOrders = item.to === "/admin/orders";
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "flex items-center justify-end gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200",
-                    active
-                      ? "bg-[#DFBA73] text-[#0B0705] font-black shadow-sm"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-white",
-                  )}
-                >
-                  {isOrders && pendingCount > 0 && (
-                    <span className="ml-auto flex size-5 items-center justify-center rounded-full bg-red-500 text-[0.65rem] font-black text-white">
-                      {pendingCount}
-                    </span>
-                  )}
-                  <span>{item.label}</span>
-                  <item.icon className="size-4" />
-                </Link>
-              );
-            })}
-          </nav>
         </div>
 
-        <div className="mt-10 space-y-3 border-t border-slate-800 pt-5 text-xs">
+        {/* Middle: Nav — scrollable if needed */}
+        <nav className="flex-1 overflow-y-auto px-5 pb-4 space-y-1.5">
+          {NAV_ITEMS.map((item) => {
+            const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+            const isOrders = item.to === "/admin/orders";
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "flex items-center justify-end gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200",
+                  active
+                    ? "bg-[#DFBA73] text-[#0B0705] font-black shadow-sm"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white",
+                )}
+              >
+                {isOrders && pendingCount > 0 && (
+                  <span className="ml-auto flex size-5 items-center justify-center rounded-full bg-red-500 text-[0.65rem] font-black text-white">
+                    {pendingCount}
+                  </span>
+                )}
+                <span>{item.label}</span>
+                <item.icon className="size-4" />
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom: Logout — always pinned */}
+        <div className="px-5 pb-6 pt-4 shrink-0 space-y-3 border-t border-slate-800 text-xs">
           <p className="text-slate-400">مسجل كـ</p>
           <p className="truncate font-semibold text-white">{email}</p>
           <button

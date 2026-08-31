@@ -125,6 +125,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
           <form
             onSubmit={handleSubmit}
             className="w-full mt-7 space-y-4"
+            autoComplete={form.rememberMe ? "on" : "off"}
             noValidate
           >
             {/* Email Field */}
@@ -142,7 +143,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
                 onChange={(e) => set({ email: e.target.value })}
                 placeholder="name@example.com"
                 required
-                autoComplete="username email"
+                autoComplete={form.rememberMe ? "username email" : "off"}
                 className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 text-sm text-[#1C140E] placeholder-[#B5A89B] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7] text-left"
               />
             </div>
@@ -163,7 +164,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
                   onChange={(e) => set({ password: e.target.value })}
                   placeholder="Enter your password"
                   required
-                  autoComplete="current-password"
+                  autoComplete={form.rememberMe ? "current-password" : "new-password"}
                   className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 pr-11 text-sm text-[#1C140E] placeholder-[#B5A89B] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7] text-left"
                 />
                 <button
