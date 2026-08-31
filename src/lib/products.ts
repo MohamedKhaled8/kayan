@@ -7,9 +7,9 @@ export type Product = {
   price: number;
   category: Category;
   images: string[];
-  featured?: boolean;
-  preparation_time?: string;
-  calories?: number;
+  featured?: boolean | undefined;
+  preparation_time?: string | undefined;
+  calories?: number | undefined;
   created_at: string;
   updated_at: string;
 };

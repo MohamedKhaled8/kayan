@@ -151,3 +151,18 @@
   text-transform: uppercase;
   color: #DFBA73;
 }
+
+@keyframes slow-pulse {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@utility animate-pulse-slow {
+  animation: slow-pulse 8s ease-in-out infinite;
+}

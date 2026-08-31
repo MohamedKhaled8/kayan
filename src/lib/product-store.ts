@@ -1,22 +1,33 @@
 import { useCallback, useEffect, useState } from "react";
-import { seedProducts, type Product } from "./products";
+import { type Product } from "./products";
+import { supabase } from "./supabase";
+import { demoProducts } from "./demo-data";
 
-const STORAGE_KEY = "kayan.products.v3";
+const STORAGE_KEY = "kayan.products.v4";
 const CHANNEL_NAME = "kayan_products_realtime";
+const DEMO_OVERRIDE_KEY = "kayan.demo_override";
+
+function isDemoDisabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(DEMO_OVERRIDE_KEY) === "hidden";
+}
 
 function read(): Product[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return demoProducts;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      return isDemoDisabled() ? [] : demoProducts;
+    }
     const parsed = JSON.parse(raw) as Product[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    return isDemoDisabled() ? [] : demoProducts;
   } catch {
-    return [];
+    return isDemoDisabled() ? [] : demoProducts;
   }
 }
 
-function write(products: Product[]) {
+function writeLocal(products: Product[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
   window.dispatchEvent(new Event("kayan:products"));
@@ -27,7 +38,7 @@ function write(products: Product[]) {
       channel.postMessage({ type: "PRODUCTS_UPDATED", payload: products });
       channel.close();
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
 }
@@ -35,62 +46,180 @@ function write(products: Product[]) {
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>(read);
 
-  useEffect(() => {
-    const sync = () => setProducts(read());
-    sync();
-
-    window.addEventListener("kayan:products", sync);
-    window.addEventListener("storage", sync);
-
-    let channel: BroadcastChannel | null = null;
+  // 1. Fetch products from Supabase
+  const fetchSupabaseProducts = useCallback(async () => {
     try {
-      if ("BroadcastChannel" in window) {
-        channel = new BroadcastChannel(CHANNEL_NAME);
-        channel.onmessage = (event) => {
-          if (event.data?.type === "PRODUCTS_UPDATED") {
-            setProducts(event.data.payload);
-          }
-        };
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        const mapped: Product[] = data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || "",
+          price: Number(item.price) || 0,
+          category: item.category || "Hot Drinks",
+          images: Array.isArray(item.images) ? item.images : [],
+          featured: Boolean(item.featured),
+          preparation_time: item.preparation_time || "",
+          calories: item.calories ? Number(item.calories) : undefined,
+          created_at: item.created_at || new Date().toISOString(),
+          updated_at: item.updated_at || new Date().toISOString(),
+        }));
+
+        setProducts(mapped);
+        writeLocal(mapped);
+      } else if (!error && (!data || data.length === 0)) {
+        if (!isDemoDisabled()) {
+          setProducts(demoProducts);
+          writeLocal(demoProducts);
+        }
       }
-    } catch (e) {
-      // ignore
+    } catch {
+      // fallback to local
     }
+  }, []);
+
+  // 2. Setup Realtime subscription via Supabase
+  useEffect(() => {
+    fetchSupabaseProducts();
+
+    const localSync = () => setProducts(read());
+    window.addEventListener("kayan:products", localSync);
+    window.addEventListener("storage", localSync);
+
+    // Supabase Realtime channel
+    const channel = supabase
+      .channel("public:products")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "products" },
+        () => {
+          fetchSupabaseProducts();
+        }
+      )
+      .subscribe();
 
     return () => {
-      window.removeEventListener("kayan:products", sync);
-      window.removeEventListener("storage", sync);
-      if (channel) channel.close();
+      window.removeEventListener("kayan:products", localSync);
+      window.removeEventListener("storage", localSync);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchSupabaseProducts]);
 
-  const save = useCallback((next: Product[]) => {
-    write(next);
-    setProducts(next);
-  }, []);
-
+  // 3. Upsert product (Supabase + Local Optimistic)
   const upsert = useCallback(
-    (product: Product) => {
+    async (product: Product) => {
       const current = read();
       const exists = current.some((p) => p.id === product.id);
-      save(
-        exists
-          ? current.map((p) => (p.id === product.id ? product : p))
-          : [{ ...product }, ...current],
-      );
+      const nextProducts = exists
+        ? current.map((p) => (p.id === product.id ? product : p))
+        : [{ ...product }, ...current];
+
+      // Optimistic update
+      writeLocal(nextProducts);
+      setProducts(nextProducts);
+
+      // Async save to Supabase
+      try {
+        await supabase.from("products").upsert({
+          id: product.id,
+          name: product.name,
+          description: product.description || "",
+          price: Number(product.price) || 0,
+          category: product.category,
+          images: product.images || [],
+          featured: Boolean(product.featured),
+          preparation_time: product.preparation_time || "",
+          calories: product.calories || 0,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn("Supabase product upsert warning:", err);
+      }
     },
-    [save],
+    []
   );
 
+  // 4. Remove product (Supabase + Local Optimistic)
   const remove = useCallback(
-    (id: string) => {
-      save(read().filter((p) => p.id !== id));
+    async (id: string) => {
+      const current = read();
+      const nextProducts = current.filter((p) => p.id !== id);
+      writeLocal(nextProducts);
+      setProducts(nextProducts);
+
+      try {
+        await supabase.from("products").delete().eq("id", id);
+      } catch (err) {
+        console.warn("Supabase product delete warning:", err);
+      }
     },
-    [save],
+    []
   );
 
-  const reset = useCallback(() => save([]), [save]);
+  // 5. Load Demo Data
+  const loadDemoData = useCallback(async (pushToSupabase = false) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(DEMO_OVERRIDE_KEY);
+    }
+    writeLocal(demoProducts);
+    setProducts(demoProducts);
 
-  return { products, upsert, remove, reset };
+    if (pushToSupabase) {
+      for (const item of demoProducts) {
+        try {
+          await supabase.from("products").upsert({
+            id: item.id,
+            name: item.name,
+            description: item.description || "",
+            price: Number(item.price) || 0,
+            category: item.category,
+            images: item.images || [],
+            featured: Boolean(item.featured),
+            preparation_time: item.preparation_time || "",
+            calories: item.calories || 0,
+            updated_at: new Date().toISOString(),
+          });
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
+  // 6. Clear All Products
+  const clearAllProducts = useCallback(async (removeFromSupabase = false) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(DEMO_OVERRIDE_KEY, "hidden");
+    }
+    writeLocal([]);
+    setProducts([]);
+
+    if (removeFromSupabase) {
+      try {
+        await supabase.from("products").delete().neq("id", "none");
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  const reset = useCallback(async () => {
+    writeLocal([]);
+    setProducts([]);
+  }, []);
+
+  return { 
+    products, 
+    upsert, 
+    remove, 
+    reset,
+    loadDemoData,
+    clearAllProducts
+  };
 }
 
 export function slugify(name: string) {

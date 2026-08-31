@@ -135,50 +135,93 @@ function ProductDetailPage() {
     <div className="page-enter min-h-screen bg-[#0B0705] text-[#F5EFE6]">
       <SiteHeader />
 
-      <div className="mx-auto max-w-5xl px-6 pt-28 sm:px-10">
+      <div className="mx-auto max-w-5xl px-4 pt-4 sm:pt-6 sm:px-8">
         <BackLink />
       </div>
 
-      <div className="mx-auto max-w-5xl px-6 py-10 sm:px-10">
-        <div className="flex flex-col gap-10 md:flex-row md:items-start md:gap-14">
+      <div className="mx-auto max-w-5xl px-4 py-4 sm:py-8 sm:px-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-12">
           {/* ── Gallery ── */}
-          <div className="w-full md:w-[360px] lg:w-[420px] shrink-0 md:sticky md:top-28">
-            <button
-              onClick={() => setLightbox(true)}
-              className="group relative block w-full overflow-hidden rounded-3xl border border-[#DFBA73]/30 bg-[#170F0A] shadow-soft cursor-zoom-in"
-              aria-label="تكبير الصورة"
-            >
-              {images.map((src, i) => (
-                <img
-                  key={src + i}
-                  src={getOptimizedImageUrl(src, 800)}
-                  alt={`${product.name} — صورة ${i + 1}`}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  className={cn(
-                    "aspect-square w-full object-cover transition-opacity duration-500 ease-out",
-                    i === imgIndex
-                      ? "opacity-100"
-                      : "absolute inset-0 opacity-0 pointer-events-none",
-                  )}
-                />
-              ))}
-              <span className="absolute left-4 bottom-4 flex items-center gap-1.5 rounded-full bg-[#0B0705]/90 px-3.5 py-1.5 text-xs text-[#F5EFE6] backdrop-blur border border-[#DFBA73]/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 shadow-sm">
-                <Expand className="size-3.5 text-[#DFBA73]" /> تكبير الصورة
-              </span>
-            </button>
+          <div className="w-full md:w-[360px] lg:w-[420px] shrink-0 md:sticky md:top-24">
+            <div className="relative group overflow-hidden rounded-2xl sm:rounded-3xl border border-[#DFBA73]/30 bg-[#170F0A] shadow-soft">
+              
+              {/* Main Image Clickable for Lightbox */}
+              <button
+                type="button"
+                onClick={() => setLightbox(true)}
+                className="relative block w-full aspect-square overflow-hidden cursor-zoom-in"
+                aria-label="تكبير الصورة"
+              >
+                {images.map((src, i) => (
+                  <img
+                    key={src + i}
+                    src={getOptimizedImageUrl(src, 800)}
+                    alt={`${product.name} — صورة ${i + 1}`}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    className={cn(
+                      "size-full object-cover transition-opacity duration-300 ease-out",
+                      i === imgIndex
+                        ? "opacity-100"
+                        : "absolute inset-0 opacity-0 pointer-events-none",
+                    )}
+                  />
+                ))}
+                
+                {/* Zoom Hint */}
+                <span className="absolute left-3 bottom-3 flex items-center gap-1.5 rounded-full bg-[#0B0705]/85 px-3 py-1 text-[0.68rem] text-[#F5EFE6] backdrop-blur border border-[#DFBA73]/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100 shadow-sm">
+                  <Expand className="size-3 text-[#DFBA73]" /> تكبير
+                </span>
+              </button>
 
+              {/* Next / Prev Gallery Navigation Arrows */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImgIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+                    }}
+                    aria-label="الصورة السابقة"
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 flex size-8 sm:size-9 items-center justify-center rounded-full bg-[#0B0705]/80 text-[#DFBA73] backdrop-blur-md border border-[#DFBA73]/30 transition-all hover:bg-[#DFBA73] hover:text-[#0B0705] hover:scale-105 active:scale-95 shadow-md cursor-pointer z-10"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImgIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+                    }}
+                    aria-label="الصورة التالية"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 flex size-8 sm:size-9 items-center justify-center rounded-full bg-[#0B0705]/80 text-[#DFBA73] backdrop-blur-md border border-[#DFBA73]/30 transition-all hover:bg-[#DFBA73] hover:text-[#0B0705] hover:scale-105 active:scale-95 shadow-md cursor-pointer z-10"
+                  >
+                    <ChevronRight className="size-4" />
+                  </button>
+
+                  {/* Photo Counter Badge */}
+                  <span className="absolute top-2.5 right-2.5 rounded-full bg-[#0B0705]/85 px-2.5 py-0.5 text-[0.65rem] font-bold text-[#DFBA73] backdrop-blur-md border border-[#DFBA73]/25 shadow-sm">
+                    {imgIndex + 1} / {images.length}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Thumbnail Navigation Strip */}
             {images.length > 1 && (
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="mt-3 flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {images.map((src, i) => (
                   <button
                     key={src + i}
+                    type="button"
                     onClick={() => setImgIndex(i)}
                     aria-label={`عرض الصورة ${i + 1}`}
                     className={cn(
-                      "size-18 overflow-hidden rounded-2xl border-2 transition-all duration-200",
+                      "size-14 sm:size-16 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 cursor-pointer",
                       i === imgIndex
                         ? "border-[#DFBA73] shadow-soft opacity-100 scale-105"
-                        : "border-transparent opacity-60 hover:opacity-100",
+                        : "border-[#DFBA73]/20 opacity-60 hover:opacity-100 hover:border-[#DFBA73]/60",
                     )}
                   >
                     <img
@@ -196,7 +239,7 @@ function ProductDetailPage() {
           {/* ── Details + Order Panel ── */}
           <Reveal delay={80} className="flex-1 min-w-0 text-right">
             <span className="eyebrow text-[#DFBA73]">{product.category}</span>
-            <h1 className="mt-3 font-display text-3xl font-normal leading-tight sm:text-4xl md:text-5xl text-[#F5EFE6]">
+            <h1 className="mt-2 font-display text-2xl sm:text-3xl md:text-4xl font-normal leading-tight text-[#F5EFE6]">
               {product.name}
             </h1>
 

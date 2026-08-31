@@ -1,74 +1,41 @@
 import { useCallback, useEffect, useState } from "react";
+import { supabase } from "./supabase";
+import { demoCategories } from "./demo-data";
 
 export interface CategoryItem {
   id: string;
   name: string;
   description?: string;
   icon?: string;
+  sort_order?: number;
   createdAt: string;
 }
 
-export const defaultCategories: CategoryItem[] = [
-  {
-    id: "hot-coffee",
-    name: "قهوة مختصة ومشروبات ساخنة",
-    description: "إسبريسو، فلات وايت، كورتادو، كيمكس، ومشروبات ساخنة مميزة",
-    icon: "Coffee",
-    createdAt: new Date("2026-01-01").toISOString(),
-  },
-  {
-    id: "iced-drinks",
-    name: "مشروبات باردة ومثلجة",
-    description: "سبانش لاتيه مثلج، كولد برو، آيس تي، ومشروبات صيفية منعشة",
-    icon: "IceCream",
-    createdAt: new Date("2026-01-02").toISOString(),
-  },
-  {
-    id: "fresh-pastries",
-    name: "حلويات ومخبوزات طازجة",
-    description: "كيك، تشيز كيك، كرواسون فرنسي، دوناتس، وحلويات فاخرة يومياً",
-    icon: "Cookie",
-    createdAt: new Date("2026-01-03").toISOString(),
-  },
-  {
-    id: "frappe-juices",
-    name: "عصائر طبيعية وفرابيه",
-    description: "فرابيه كراميل وشوكولاتة، سموذي فواكه طبيعية، وعصائر طازجة",
-    icon: "Flame",
-    createdAt: new Date("2026-01-04").toISOString(),
-  },
-  {
-    id: "kayan-specials",
-    name: "سبيشال كَيان",
-    description: "مشروبات وابتكارات حصرية خاصة بكَيان كافيه",
-    icon: "Sparkles",
-    createdAt: new Date("2026-01-05").toISOString(),
-  },
-];
+export const defaultCategories: CategoryItem[] = demoCategories;
 
 const STORAGE_KEY = "kayan.categories.v4";
 const CHANNEL_NAME = "kayan_categories_realtime";
+const DEMO_OVERRIDE_KEY = "kayan.demo_override";
+
+function isDemoDisabled(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(DEMO_OVERRIDE_KEY) === "hidden";
+}
 
 function readCategories(): CategoryItem[] {
-  if (typeof window === "undefined") return defaultCategories;
+  if (typeof window === "undefined") return demoCategories;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultCategories));
-      return defaultCategories;
-    }
+    if (!raw) return isDemoDisabled() ? [] : demoCategories;
     const parsed = JSON.parse(raw) as CategoryItem[];
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
-    }
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultCategories));
-    return defaultCategories;
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    return isDemoDisabled() ? [] : demoCategories;
   } catch {
-    return defaultCategories;
+    return isDemoDisabled() ? [] : demoCategories;
   }
 }
 
-function writeCategories(categories: CategoryItem[]) {
+function writeLocal(categories: CategoryItem[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
   window.dispatchEvent(new Event("kayan:categories"));
@@ -79,59 +46,87 @@ function writeCategories(categories: CategoryItem[]) {
       channel.postMessage({ type: "CATEGORIES_UPDATED", payload: categories });
       channel.close();
     }
-  } catch (e) {
-    // BroadcastChannel fallback
+  } catch {
+    // ignore
   }
 }
 
 export function useCategories() {
   const [categories, setCategories] = useState<CategoryItem[]>(readCategories);
 
-  useEffect(() => {
-    const sync = () => setCategories(readCategories());
-    sync();
-
-    window.addEventListener("kayan:categories", sync);
-    window.addEventListener("storage", sync);
-
-    let channel: BroadcastChannel | null = null;
+  // 1. Fetch initial categories from Supabase
+  const fetchSupabaseCategories = useCallback(async () => {
     try {
-      if ("BroadcastChannel" in window) {
-        channel = new BroadcastChannel(CHANNEL_NAME);
-        channel.onmessage = (event) => {
-          if (event.data?.type === "CATEGORIES_UPDATED") {
-            setCategories(event.data.payload);
-          }
-        };
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        const mapped: CategoryItem[] = data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description || "",
+          icon: item.icon || "Coffee",
+          sort_order: item.sort_order || 0,
+          createdAt: item.created_at || new Date().toISOString(),
+        }));
+        setCategories(mapped);
+        writeLocal(mapped);
+      } else if (!error && (!data || data.length === 0)) {
+        if (!isDemoDisabled()) {
+          setCategories(demoCategories);
+          writeLocal(demoCategories);
+        }
       }
-    } catch (e) {
-      // ignore
+    } catch {
+      // fallback to local cache
     }
+  }, []);
+
+  // 2. Realtime subscription via Supabase + local events
+  useEffect(() => {
+    fetchSupabaseCategories();
+
+    const localSync = () => setCategories(readCategories());
+    window.addEventListener("kayan:categories", localSync);
+    window.addEventListener("storage", localSync);
+
+    // Supabase Realtime channel
+    const channel = supabase
+      .channel("public:categories")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "categories" },
+        () => {
+          fetchSupabaseCategories();
+        }
+      )
+      .subscribe();
 
     return () => {
-      window.removeEventListener("kayan:categories", sync);
-      window.removeEventListener("storage", sync);
-      if (channel) channel.close();
+      window.removeEventListener("kayan:categories", localSync);
+      window.removeEventListener("storage", localSync);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchSupabaseCategories]);
 
-  const save = useCallback((next: CategoryItem[]) => {
-    writeCategories(next);
-    setCategories(next);
-  }, []);
-
+  // 3. Add Category (Supabase + Local)
   const addCategory = useCallback(
-    (name: string, description = "", icon = "Coffee") => {
+    async (name: string, description = "", icon = "Coffee") => {
       const trimmed = name.trim();
       if (!trimmed) return null;
+
       const current = readCategories();
       const id =
         trimmed
           .toLowerCase()
           .replace(/[^\w\u0621-\u064A0-9]+/g, "-")
-          .replace(/^-|-$/g, "") || `category-${Date.now()}`;
+          .replace(/^-|-$/g, "") || `cat-${Date.now()}`;
 
-      const uniqueId = current.some((c) => c.id === id) ? `${id}-${Date.now().toString().slice(-4)}` : id;
+      const uniqueId = current.some((c) => c.id === id)
+        ? `${id}-${Date.now().toString().slice(-4)}`
+        : id;
 
       const newCategory: CategoryItem = {
         id: uniqueId,
@@ -141,34 +136,118 @@ export function useCategories() {
         createdAt: new Date().toISOString(),
       };
 
+      // Optimistic update
       const updated = [...current, newCategory];
-      save(updated);
+      writeLocal(updated);
+      setCategories(updated);
+
+      // Async write to Supabase
+      try {
+        await supabase.from("categories").insert({
+          id: uniqueId,
+          name: trimmed,
+          description: description.trim(),
+          icon,
+          created_at: newCategory.createdAt,
+          updated_at: newCategory.createdAt,
+        });
+      } catch (err) {
+        console.warn("Supabase insert category warning:", err);
+      }
+
       return newCategory;
     },
-    [save],
+    []
   );
 
+  // 4. Update Category
   const updateCategory = useCallback(
-    (id: string, updates: Partial<Omit<CategoryItem, "id" | "createdAt">>) => {
+    async (id: string, updates: Partial<Omit<CategoryItem, "id" | "createdAt">>) => {
       const current = readCategories();
-      const updated = current.map((c) => (c.id === id ? { ...c, ...updates } : c));
-      save(updated);
+      const updated = current.map((c) =>
+        c.id === id ? { ...c, ...updates } : c
+      );
+      writeLocal(updated);
+      setCategories(updated);
+
+      try {
+        await supabase.from("categories").update({
+          name: updates.name,
+          description: updates.description,
+          icon: updates.icon,
+          updated_at: new Date().toISOString(),
+        }).eq("id", id);
+      } catch (err) {
+        console.warn("Supabase update category warning:", err);
+      }
     },
-    [save],
+    []
   );
 
+  // 5. Remove Category
   const removeCategory = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const current = readCategories();
       const updated = current.filter((c) => c.id !== id);
-      save(updated);
+      writeLocal(updated);
+      setCategories(updated);
+
+      try {
+        await supabase.from("categories").delete().eq("id", id);
+      } catch (err) {
+        console.warn("Supabase delete category warning:", err);
+      }
     },
-    [save],
+    []
   );
 
-  const resetCategories = useCallback(() => {
-    save(defaultCategories);
-  }, [save]);
+  // 6. Load Demo Categories
+  const loadDemoCategories = useCallback(async (pushToSupabase = true) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(DEMO_OVERRIDE_KEY);
+    }
+    writeLocal(demoCategories);
+    setCategories(demoCategories);
+
+    if (pushToSupabase) {
+      for (const cat of demoCategories) {
+        try {
+          await supabase.from("categories").upsert({
+            id: cat.id,
+            name: cat.name,
+            description: cat.description || "",
+            icon: cat.icon || "Coffee",
+            created_at: cat.createdAt,
+            updated_at: cat.createdAt,
+          });
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
+  // 7. Clear All Categories
+  const clearAllCategories = useCallback(async (removeFromSupabase = false) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(DEMO_OVERRIDE_KEY, "hidden");
+    }
+    writeLocal([]);
+    setCategories([]);
+
+    if (removeFromSupabase) {
+      try {
+        await supabase.from("categories").delete().neq("id", "none");
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  const resetCategories = useCallback(async () => {
+    writeLocal(demoCategories);
+    setCategories(demoCategories);
+  }, []);
 
   return {
     categories,
@@ -176,5 +255,7 @@ export function useCategories() {
     updateCategory,
     removeCategory,
     resetCategories,
+    loadDemoCategories,
+    clearAllCategories,
   };
 }
