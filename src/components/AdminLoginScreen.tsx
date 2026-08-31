@@ -45,7 +45,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
           navigate({ to: "/admin" });
         }
       } else {
-        set({ error: res.error ?? "Invalid credentials. Please try again." });
+        set({ error: res.error ?? "Invalid email or password." });
       }
     } catch {
       set({ error: "An unexpected error occurred. Please try again." });
@@ -55,7 +55,10 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-[#FAF8F5] text-[#1C140E] font-sans antialiased selection:bg-[#DFBA73]/30">
+    <div
+      dir="ltr"
+      className="min-h-screen w-full flex flex-col md:flex-row bg-[#FAF8F5] text-[#1C140E] font-sans antialiased selection:bg-[#DFBA73]/30 text-left"
+    >
       {/* ── LEFT PANEL (Photo side) — ~40% width on desktop ── */}
       <div className="relative w-full md:w-[42%] lg:w-[40%] h-[240px] sm:h-[300px] md:h-auto md:min-h-screen overflow-hidden shrink-0">
         {/* Full-bleed real barista photograph */}
@@ -108,7 +111,7 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
 
           {/* Subtitle */}
           <p className="mt-1.5 text-xs sm:text-sm text-[#736357] text-center">
-            Start your day with the perfect brew
+            Sign in to access your administrative dashboard
           </p>
 
           {/* Error Message */}
@@ -125,27 +128,27 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
             noValidate
           >
             {/* Email Field */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 text-left">
               <label
                 htmlFor="login-email"
                 className="block text-xs font-semibold text-[#3D2E24] tracking-wide"
               >
-                Email
+                Email Address
               </label>
               <input
                 id="login-email"
-                type="text"
+                type="email"
                 value={form.email}
                 onChange={(e) => set({ email: e.target.value })}
-                placeholder="admin@kayan.cafe"
+                placeholder="name@example.com"
                 required
                 autoComplete="username email"
-                className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 text-sm text-[#1C140E] placeholder-[#A09386] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7]"
+                className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 text-sm text-[#1C140E] placeholder-[#B5A89B] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7] text-left"
               />
             </div>
 
             {/* Password Field */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 text-left">
               <label
                 htmlFor="login-password"
                 className="block text-xs font-semibold text-[#3D2E24] tracking-wide"
@@ -158,10 +161,10 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
                   type={form.showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => set({ password: e.target.value })}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   required
                   autoComplete="current-password"
-                  className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 pr-11 text-sm text-[#1C140E] placeholder-[#A09386] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7]"
+                  className="w-full rounded-xl border border-[#D9D1C7] bg-white px-4 py-3 pr-11 text-sm text-[#1C140E] placeholder-[#B5A89B] outline-none transition-all duration-200 focus:border-[#1B4332] focus:ring-2 focus:ring-[#1B4332]/15 hover:border-[#BFB4A7] text-left"
                 />
                 <button
                   type="button"
@@ -178,8 +181,8 @@ export function AdminLoginScreen({ onSuccess }: { onSuccess?: () => void }) {
               </div>
             </div>
 
-            {/* Remember me (Left only, no forgot password link) */}
-            <div className="flex items-center gap-2 pt-0.5">
+            {/* Remember me */}
+            <div className="flex items-center gap-2 pt-0.5 justify-start text-left">
               <input
                 id="login-remember"
                 type="checkbox"

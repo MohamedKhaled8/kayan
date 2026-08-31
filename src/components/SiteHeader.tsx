@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Lock, Menu, X } from "lucide-react";
 import { useState } from "react";
 import logoSymbol from "@/assets/logo-symbol.png";
@@ -6,12 +6,26 @@ import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const scrollTo = (id: string) => {
+  const handleNavClick = (sectionId: string) => {
     setMobileMenuOpen(false);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+    if (typeof window !== "undefined") {
+      if (window.location.pathname === "/") {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      } else {
+        navigate({ to: "/" }).then(() => {
+          setTimeout(() => {
+            const element = document.getElementById(sectionId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 120);
+        });
+      }
     }
   };
 
@@ -40,7 +54,7 @@ export function SiteHeader() {
             activeOptions={{ exact: true }}
             activeProps={{ className: "text-[#DFBA73] after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-full after:bg-[#DFBA73]" }}
             onClick={() => {
-              if (window.location.pathname === "/") {
+              if (typeof window !== "undefined" && window.location.pathname === "/") {
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }
             }}
@@ -51,13 +65,7 @@ export function SiteHeader() {
 
           <button
             type="button"
-            onClick={() => {
-              if (window.location.pathname !== "/") {
-                window.location.href = "/#menu";
-              } else {
-                scrollTo("menu");
-              }
-            }}
+            onClick={() => handleNavClick("menu")}
             className="relative py-1 transition-colors hover:text-[#DFBA73] cursor-pointer"
           >
             MENU
@@ -74,13 +82,7 @@ export function SiteHeader() {
 
           <button
             type="button"
-            onClick={() => {
-              if (window.location.pathname !== "/") {
-                window.location.href = "/#visit";
-              } else {
-                scrollTo("visit");
-              }
-            }}
+            onClick={() => handleNavClick("visit")}
             className="relative py-1 transition-colors hover:text-[#DFBA73] cursor-pointer"
           >
             LOCATIONS
@@ -121,7 +123,7 @@ export function SiteHeader() {
               activeProps={{ className: "text-[#DFBA73] font-black" }}
               onClick={() => {
                 setMobileMenuOpen(false);
-                if (window.location.pathname === "/") {
+                if (typeof window !== "undefined" && window.location.pathname === "/") {
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }
               }}
@@ -132,14 +134,7 @@ export function SiteHeader() {
 
             <button
               type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (window.location.pathname !== "/") {
-                  window.location.href = "/#menu";
-                } else {
-                  scrollTo("menu");
-                }
-              }}
+              onClick={() => handleNavClick("menu")}
               className="py-2.5 rounded-xl border border-transparent hover:border-[#DFBA73]/20 hover:bg-[#170F0A] transition-colors cursor-pointer"
             >
               MENU
@@ -157,14 +152,7 @@ export function SiteHeader() {
 
             <button
               type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (window.location.pathname !== "/") {
-                  window.location.href = "/#visit";
-                } else {
-                  scrollTo("visit");
-                }
-              }}
+              onClick={() => handleNavClick("visit")}
               className="py-2.5 rounded-xl border border-transparent hover:border-[#DFBA73]/20 hover:bg-[#170F0A] transition-colors cursor-pointer"
             >
               LOCATIONS
